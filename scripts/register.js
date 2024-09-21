@@ -12,17 +12,19 @@ function Pet(name,age,gender,petType,breed,service) {
     this.service=service;
 }
 
-function Pay(name,email,billAdd,city,state,zip,nameCard,numCard,expMonth,cardVV) {
+function Pay(name,email,billAdd,city,state,zip,nameCard,numCard,expMonth,cardVV,payType) {
     //property=parameter
     this.name=name;
     this.email=email;
     this.billAdd=billAdd;
     this.city=city;
     this.state=state;
+    this.zip
     this.nameCard=nameCard;
     this.numCard=numCard;
     this.expMonth=expMonth;
     this.cardVV=cardVV;
+    this.payType=payType;
 }
 
 
@@ -43,29 +45,41 @@ function register() {
         if(petHolder[i]==null||petHolder[i]==''){ //checks if either null or empty ('') exists within checker;
             alert("Please complete Pet Info Form");
             checkerCounter++; //counter becomes 1
+            $("#prospects_form").submit(function(e) {
+                e.preventDefault();
+            });
             break; //ends loop if either null or empty ('') exists within checker allowing alert msg to display only ONCE.
         }
     }
     
     if(checkerCounter==0){ //if counter's value didnt change, will go through the loop.
-        
+        let reEntry;
         
         petHolder=new Pet(inputName.value,inputAge.value,inputGender.value,inputPetType.value,inputBreed.value,inputService.value) //Since value of radios are no longer null, the value of the radios will be stored this time.
         
         
+        savePet(petHolder); //pushes pet inputs into array pets[]//
         
         
-        pets.push(petHolder); //pushes pet inputs into array pets[]//
         
+        reEntry=confirm("Do you want to add another pet or have an additional service for your pet?")
         
-        clearForm();
-        displayRows();
+        if(reEntry==true){
+            window.location.href="add-register.html";
+            
+        }
+        else{
+            window.location.href="order-summary.html"
+            
+        }
+        //clearForm();
+        //displayRows();
         
     }
 }
 
 
-function payInfo(){
+function payInfoCard(){
     let customerName=document.getElementById("cn");
     let customerEmail=document.getElementById("ce");
     let customerAddr=document.getElementById("ca");
@@ -77,14 +91,18 @@ function payInfo(){
     let cardNum=document.getElementById("numC");
     let cardExp=document.getElementById("ec");
     let cardCVV=document.getElementById("cvv");
+    let payType='Debit/Credit Card';
+    
 
-    let payChecker=new Pay(customerName.value,customerEmail.value,customerAddr.value,customerCity.value,customerState.value,customerZip.value,cardName.value,cardNum.value,cardExp.value,cardCVV.value,)
+    let payChecker=new Pay(customerName.value,customerEmail.value,customerAddr.value,customerCity.value,customerState.value,customerZip.value,cardName.value,cardNum.value,cardExp.value,cardCVV.value,payType);
 
     let checkerCounter=0;
     
     for(let i in payChecker){ //goes through values of checker with index i;
         if(payChecker[i]==null||payChecker[i]==''){ //checks if either null or empty ('') exists within checker;
-            
+            $("#prospects_form").submit(function(e) {
+                e.preventDefault();
+            });
             checkerCounter++; //counter becomes 1
             break; //ends loop if either null or empty ('') exists within checker allowing alert msg to display only ONCE.
         }
@@ -122,7 +140,13 @@ function payInfo(){
             alert("Invalid Card. Try again");
         }
         if(validationCntr==4){
+            savePay(payChecker);
             register();
+        }
+        else{
+            $("#submit").submit(function(e) {
+                e.preventDefault();
+            });
         }
 
     }
@@ -131,19 +155,68 @@ function payInfo(){
     }
 }
 
+function payInfoPayPal(){
+    let customerName=document.getElementById("cn");
+    let customerEmail=document.getElementById("ce");
+    let customerAddr=document.getElementById("ca");
+    let customerCity=document.getElementById("cc");
+    let customerState=document.getElementById("cs");
+    let customerZip=document.getElementById("cz");
 
-function test(){
-    let x=document.querySelector('input[name="gender"]:checked');
-    console.log(x);
+    let cardName='PayPal-Provided';
+    let cardNum='PayPal-Provided';
+    let cardExp='PayPal-Provided';
+    let cardCVV='PayPal-Provided';
+    let payType='PayPal';
+
+    let payChecker=new Pay(customerName.value,customerEmail.value,customerAddr.value,customerCity.value,customerState.value,customerZip.value,cardName.value,cardNum.value,cardExp.value,cardCVV.value,payType);
+
+    savePay(payChecker);
+    register();
+
+}
+
+function payInfoCash(){
+    let customerName=document.getElementById("cn");
+    let customerEmail=document.getElementById("ce");
+    let customerAddr=document.getElementById("ca");
+    let customerCity=document.getElementById("cc");
+    let customerState=document.getElementById("cs");
+    let customerZip=document.getElementById("cz");
+
+    let cardName='Provide On Visit';
+    let cardNum='Provide On Visit';
+    let cardExp='Provide On Visit';
+    let cardCVV='Provide On Visit';
+    let payType='Cash';
+
+    let payChecker=new Pay(customerName.value,customerEmail.value,customerAddr.value,customerCity.value,customerState.value,customerZip.value,cardName.value,cardNum.value,cardExp.value,cardCVV.value,payType);
     
+    savePay(payChecker);
+    register();
+
 }
 
 function deletePet(petID) {
     console.log("Deleting Pet");
     let action=prompt("Enter reason of deletion");
     console.log("Action Successful! \nReason: "+action);
-    document.getElementById(petID).remove();//deletes from the HTML
-    pets.splice(petID,1);//removes pet from the array;
+    //document.getElementById(petID).remove();//deletes from the HTML
+
+    //pets.splice(petID,1);//removes pet from the array;
+
+    
+    let petRegistry=readPet();
+    console.log(petRegistry);
+    
+    petRegistry.splice(petID,1);
+
+    localStorage.removeItem("PetList");
+
+    for(let i=0;i<petRegistry.length;i++){
+        savePet(petRegistry[i]);
+    }
+
     displayRows();
     
 }
@@ -169,10 +242,12 @@ function search(){
     }
     else{
 
+        let petTempHolder=readPet();
+        
         console.log(ss);
-        for(i=0;i<pets.length;i++){
-            if(pets[i].name.toLowerCase()==ss.toLowerCase()){
-                foundPet=pets[i];
+        for(i=0;i<petTempHolder.length;i++){
+            if(petTempHolder[i].name.toLowerCase()==ss.toLowerCase()){
+                foundPet=petTempHolder[i];
                 id=i;
                 console.log(foundPet); 
                 
@@ -212,3 +287,9 @@ function clearForm(){
     document.getElementById("ec").value="";
     document.getElementById("cvv").value="";
     }
+
+
+    //----------------INIT-----------------//
+
+
+

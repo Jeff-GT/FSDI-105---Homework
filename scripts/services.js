@@ -14,15 +14,12 @@ function addService(){
     
     $("#txtService").addClass(`empty-form`);
 
-    
-    
     counter++;
   }
   
   if(priceNew==''){
     
     $("#numPrice").addClass(`empty-form`);
-    
     
     
     counter++;
@@ -40,20 +37,56 @@ function addService(){
     }
   }
   else{
+
     let newService= new Service(serviceNew,priceNew);
-    $("#serviceAdded").append(`
-      <div>${serviceNew}</div>
-      <div>${priceNew}</div>`);
+
+      
       save(newService);
+      
       $("input").val("");
       $("input").removeClass(`empty-form`);
   }
 
 }
 
+function getServices(){
+  let services=read();
+  let option;
+
+  for(i=0;i<services.length;i++){
+    option+=`<option value="${services[i].description}">${services[i].description}</option>`
+  }
+  $("#serviceAdded").append(option);
+}
+
+function isValidService(service){
+  let validDescription=true;
+  let validPrice=true;
+
+  if(service.description==""){
+    alert("Description is Empty");
+    validDescription=false;
+  }
+  if(service.price==""){
+
+  }
+}
+
+
+
+
+
+
+
 
 function init() {
   $("#serviceAdder").on("click",addService);
+  getServices();
+  $("#payCash").hide();
+  $("#payPal").hide();
+  $("#creditCardPay").show();
+  
+  
 }
 
 window.onload=init;
